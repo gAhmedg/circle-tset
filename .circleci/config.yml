@@ -9,6 +9,30 @@ jobs:
     steps:
       - checkout
       - run: echo "hello world" 
+  configure_infrastructure: 
+    docker:
+      - image: python:3.7-alpine3.11 
+    steps:
+      - checkout
+      - add_ssh_keys:
+              # You can get this ID in the section where you registered the SSH Key
+              fingerprints: ["35:a0:6e:7a:a9:9d:05:f3:17:c4:36:42:49:bd:d0:b4X"] 
+      - run:
+          name: Install Ansible
+          command: |
+            apk add --update ansible
+      - run:
+          name: Run Playbook and Configure server
+          command: |
+            ansible-playbook -i [inventory-file] [playbook-file]
+
+
+
+
+
+
+
+
   create_infrastructuret:
       docker:
         - image: amazon/aws-cli
@@ -19,7 +43,7 @@ jobs:
             command: |
               aws cloudformation deploy \
                 --template-file template.yml \
-                --stack-name myStack-692b4 \
+                --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5} \
                 --region us-east-1
 
 workflows:
@@ -27,7 +51,7 @@ workflows:
     jobs:
       - build
       - create_infrastructuret
-
+      - configure_infrastructure
 
 
 
